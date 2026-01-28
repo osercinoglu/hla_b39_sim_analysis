@@ -744,10 +744,25 @@ for system in tqdm.tqdm(systems, desc="Analyzing systems"):
     for res in tqdm.tqdm(resids, desc=f"Testing residues in {system}", leave=False):
         df_res = df_bc_eq_pdb.query(f"Residue_id == '{res}'")
 
-        bc_1 = df_res.query('repeat == 0')['BC'].values
-        bc_2 = df_res.query('repeat == 1')['BC'].values
-        bc_3 = df_res.query('repeat == 2')['BC'].values
-        f_statistic, p_value = scipy.stats.f_oneway(bc_1, bc_2, bc_3)
+        # Get all available repeats for this residue
+        available_repeats = df_res['repeat'].unique()
+
+        # Need at least 2 repeats for ANOVA
+        if len(available_repeats) < 2:
+            continue
+
+        # Collect BC values for each repeat
+        bc_arrays = []
+        for rep in available_repeats:
+            bc_vals = df_res.query(f'repeat == {rep}')['BC'].values
+            if len(bc_vals) > 0:  # Only include non-empty arrays
+                bc_arrays.append(bc_vals)
+
+        # Need at least 2 groups for ANOVA
+        if len(bc_arrays) < 2:
+            continue
+
+        f_statistic, p_value = scipy.stats.f_oneway(*bc_arrays)
         if p_value > 0.05:
             cons_resids_pdbs.append([res,system])
             p_values.append(p_value)
