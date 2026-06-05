@@ -670,7 +670,7 @@ def getRibeiroOrtizNetwork(pdb, df_intEn, includeCovalents=True,intEnCutoff=1,rm
 
 def getBCs(dry_pdb_file,df_2network):
     nx_list = getRibeiroOrtizNetwork(dry_pdb_file,df_2network)
-    df_bcs = [pd.DataFrame(nx.betweenness_centrality(nx_list[i]).items(),columns=['Residue','BC']) for i in range(0,len(nx_list))]
+    df_bcs = [pd.DataFrame(nx.betweenness_centrality(nx_list[i],weight='distance').items(),columns=['Residue','BC']) for i in range(0,len(nx_list))]
     i = 0
     for df in df_bcs:
         df['Frame'] = i
